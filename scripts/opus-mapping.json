@@ -1,0 +1,22 @@
+{
+  "$comment": "Vörpun frá JSON Opus Futura yfir á okkar snið. ÓÚTFYLLT þar til gagnasniðið hefur verið staðfest: keyrðu `npm run inspect` (eða vinnuflæðið „Skoða JSON frá Opus Futura“ í GitHub), lestu byggingu JSON-sins og settu raunverulegar slóðir hér. Slóðir eru með punktum (t.d. \"department.name\"); listi af slóðum þýðir „fyrsta ekki-tóma gildi“. null = reiturinn er ekki til. Sjá README.",
+  "jobsPath": null,
+  "fields": {
+    "id": null,
+    "title": null,
+    "department": null,
+    "employmentType": null,
+    "location": null,
+    "publishedAt": null,
+    "deadline": null,
+    "summary": null,
+    "description": null,
+    "detailUrl": null,
+    "applyUrl": null,
+    "isGeneral": null
+  },
+  "descriptionFormat": "html",
+  "statusFilter": { "path": null, "activeValues": [] },
+  "generalApplication": { "path": null },
+  "allowedUrlHosts": []
+}

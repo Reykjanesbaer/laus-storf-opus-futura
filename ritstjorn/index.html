@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex">
+<title>Laus störf – forskoðun og kóðasmiður</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="ritstjorn.css">
+</head>
+<body>
+<main>
+  <h1>Laus störf – forskoðun og kóðasmiður</h1>
+  <p class="lede">Stilltu útlitið hér fyrir neðan og afritaðu innfellingarkóðann. Forskoðunin er vefurinn sjálfur — nákvæmlega eins og hann birtist á vef bæjarins, með raunverulegum störfum.</p>
+  <p class="data-status" id="dataStatus" role="status">Les gögn…</p>
+
+  <section aria-labelledby="h-preview">
+    <div class="sec-head">
+      <h2 id="h-preview">Forskoðun</h2>
+      <div class="seg-ctl seg-small" role="radiogroup" aria-label="Hæð forskoðunar">
+        <label><input type="radio" name="pmode" value="fixed" checked>Eins og iframe-kóðinn</label>
+        <label><input type="radio" name="pmode" value="auto">Hæð eftir innihaldi</label>
+      </div>
+    </div>
+    <div class="stage" id="stage"><div class="holder" id="holder">
+      <iframe id="preview" title="Forskoðun: laus störf hjá Reykjanesbæ"></iframe>
+    </div></div>
+    <p class="hint" id="previewHint"></p>
+  </section>
+
+  <form class="settings" id="form" onsubmit="return false" autocomplete="off">
+    <div class="sec-head">
+      <h2>Stillingar</h2>
+      <button type="button" class="btn" id="resetAll">Endurstilla sjálfgefin gildi</button>
+    </div>
+
+    <h3>Útlit</h3>
+    <div class="grid" id="grpAppearance"></div>
+    <p class="warn" id="contrastWarn" role="status" hidden></p>
+
+    <hr>
+    <h3>Efni</h3>
+    <div class="grid" id="grpContent"></div>
+
+    <hr>
+    <h3>Uppsetning</h3>
+    <div class="grid" id="grpLayout"></div>
+  </form>
+
+  <section class="code" aria-labelledby="h-code">
+    <h2 id="h-code">Innfellingarkóði</h2>
+    <div class="tabs" role="tablist" aria-label="Tegund innfellingar">
+      <button type="button" class="btn" role="tab" id="tab-iframe" aria-selected="true" aria-controls="codePanel" data-tab="iframe">iframe (mælt með)</button>
+      <button type="button" class="btn" role="tab" id="tab-script" aria-selected="false" aria-controls="codePanel" tabindex="-1" data-tab="script">Skrifta</button>
+      <button type="button" class="btn" role="tab" id="tab-url" aria-selected="false" aria-controls="codePanel" tabindex="-1" data-tab="url">Slóð</button>
+    </div>
+    <div id="codePanel" role="tabpanel" aria-labelledby="tab-iframe">
+      <pre id="codeOut" tabindex="0" aria-label="Innfellingarkóði"></pre>
+      <p class="info" id="localNote" hidden></p>
+      <div class="code-foot">
+        <div class="hint" id="codeHint"></div>
+        <div class="copy-row">
+          <button type="button" class="btn primary" id="copyCode">Afrita kóða</button>
+          <span class="sr-only" id="copyLive" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../storf/dates.js"></script>
+<script src="../storf/normalize.js"></script>
+<script src="../storf/filters.js"></script>
+<script src="../storf/config.js"></script>
+<script src="../storf/embed-code.js"></script>
+<script src="ritstjorn.js"></script>
+</body>
+</html>

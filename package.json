@@ -1,0 +1,17 @@
+{
+  "name": "laus-storf-opus-futura",
+  "version": "1.0.0",
+  "description": "Laus störf hjá Reykjanesbæ — sjálfstæð innfellanleg samantekt á störfum úr Opus Futura, hýst á GitHub Pages.",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\"",
+    "test:e2e": "node tests/e2e/run.js",
+    "dev": "node scripts/dev-server.js --fixture",
+    "dev:real": "node scripts/dev-server.js",
+    "inspect": "node scripts/sync-jobs.js --inspect",
+    "sync": "node scripts/sync-jobs.js",
+    "build": "node scripts/build-site.js --out _site"
+  }
+}

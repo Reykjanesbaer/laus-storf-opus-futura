@@ -1,0 +1,42 @@
+# Skoðar BYGGINGU JSON-sins frá Opus Futura og birtir hana í yfirliti keyrslunnar.
+# Notað einu sinni til að fylla út scripts/opus-mapping.json, og aftur ef sniðið
+# breytist. Keyrir á GitHub-þjóni sem hefur netaðgang að Opus Futura.
+#
+# Birtir lista af slóðum og gerðum (t.d. „jobs[0].deadline : dagsetning D.M.YYYY“)
+# og stutt sýnishorn úr fyrsta starfinu (≤ 60 stafir, ekki HTML eða slóðir í heild).
+# Störfin eru opinberar auglýsingar; ekkert er vistað í repóinu.
+name: Skoða JSON frá Opus Futura
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: 'Sýna stutt sýnishorn af gildum (úr fyrsta starfi)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      OPUS_FEED_URL: ${{ vars.OPUS_FEED_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Skoða
+        run: |
+          flags=""
+          if [ "${{ inputs.samples }}" != "true" ]; then flags="--no-samples"; fi
+          {
+            echo "## Bygging JSON frá Opus Futura"
+            echo
+            echo '```'
+            node scripts/sync-jobs.js --inspect $flags 2>&1 || echo "(mistókst — sjá kóða hér að ofan)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

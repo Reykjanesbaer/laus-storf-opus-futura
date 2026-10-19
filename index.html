@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex">
+<title>Laus störf – Reykjanesbær</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="storf/storf.css">
+</head>
+<body>
+  <!--
+    Laus störf hjá Reykjanesbæ.
+
+    Þetta er vefurinn sjálfur — það sem innfellingar á vef bæjarins vísa á.
+    Kóðasmiður fyrir ritstjóra er á /ritstjorn/.
+
+    Stillt með færibreytum í slóð, t.d.:
+      ?theme=dark&frame=0&title=0&dept=Menntasvið
+    Störfin koma úr data/jobs.json sem samstilling við Opus Futura skrifar við
+    hverja birtingu. Vafrinn talar aldrei við Opus Futura. Sjá README.
+  -->
+  <div class="storf-wrap" id="wrap">
+    <div class="storf" id="storf" aria-busy="true">
+      <header class="storf-head">
+        <h1 id="pageTitle">Laus störf</h1>
+      </header>
+
+      <p class="storf-intro" id="intro">
+        Hér má sjá laus störf hjá Reykjanesbæ. Þegar þú velur „Sækja um“ ferð þú á umsóknarvef
+        Reykjanesbæjar þar sem umsóknin er send inn — umsóknir berast ekki í gegnum þessa síðu.
+      </p>
+
+      <noscript><p class="storf-notice">Til að sjá laus störf þarf að leyfa JavaScript í vafranum.</p></noscript>
+
+      <form class="storf-filters" id="filters" role="search" aria-label="Leit og síur fyrir laus störf" hidden>
+        <div class="field field-search" id="fSearch">
+          <label for="q">Leitarorð</label>
+          <input type="search" id="q" name="q" placeholder="Leita að störfum..." autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field field-dept" id="fDept">
+          <label for="dept">Eftir tegund</label>
+          <select id="dept" name="dept"></select>
+        </div>
+        <div class="field field-sort" id="fSort">
+          <label for="sort">Röðun</label>
+          <select id="sort" name="sort"></select>
+        </div>
+        <fieldset class="field field-period" id="fPeriod">
+          <legend>Veldu tímabil</legend>
+          <div class="period">
+            <div>
+              <label for="from" id="fromLabel">Frá</label>
+              <input type="date" id="from" name="from">
+            </div>
+            <div>
+              <label for="to" id="toLabel">Til</label>
+              <input type="date" id="to" name="to">
+            </div>
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="storf-bar" id="bar">
+        <p class="storf-count" id="status" role="status" aria-live="polite">Hleð störfum…</p>
+        <button type="button" class="btn btn-link" id="reset" hidden>Hreinsa síur</button>
+      </div>
+
+      <p class="storf-notice" id="stale" role="note" hidden></p>
+
+      <div class="storf-error" id="error" role="alert" hidden>
+        <p id="errorText"></p>
+        <button type="button" class="btn btn-secondary" id="retry">Reyna aftur</button>
+      </div>
+
+      <div class="storf-results" id="results"></div>
+    </div>
+  </div>
+
+  <script src="storf/dates.js"></script>
+  <script src="storf/normalize.js"></script>
+  <script src="storf/filters.js"></script>
+  <script src="storf/config.js"></script>
+  <script src="storf/storf.js"></script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+/*
+ * Laus störf — útlit.
+ *
+ * Allir litir eru CSS-breytur á :root. storf.js reiknar þær út frá færibreytum
+ * í slóðinni (accent, bg, bgdark, radius, theme) svo texti nái alltaf AA
+ * (4,5:1) á þeim bakgrunni sem er valinn. Gildin hér eru aðeins sjálfgefin
+ * gildi fyrir fyrstu teikningu.
+ *
+ *   --s-accent       fletir með völdum texta á (aðalhnappur)
+ *   --s-accent-text  tenglar, fyrirsagnir og fókushringur — áherslulitur
+ *                    sem hefur verið ljósaður/dekktur þar til hann nær AA
+ *   --s-control      jaðrar á stjórntækjum (>= 3:1, WCAG 1.4.11)
+ *
+ * Útlitið byggir á uppbyggingu núverandi síðu Reykjanesbæjar (flokkar með
+ * fyrirsögn, dagsetning ofan við heiti, frestur neðst). Letrið er sjálfhýst
+ * Plus Jakarta Sans — Circular XX á reykjanesbaer.is er leyfisskylt og ekki
+ * hægt að dreifa því hér.
+ */
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("fonts/PlusJakartaSans-latin-wght.woff2") format("woff2");
+}
+
+:root {
+  --s-font: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --s-bg: #FFFFFF;
+  --s-ink: #1F2937;
+  --s-muted: #4B5563;
+  --s-line: #DDE1E6;
+  --s-soft: #F5F6F8;
+  --s-control: #7A828C;
+  --s-accent: #1D4D91;
+  --s-on-accent: #FFFFFF;
+  --s-accent-text: #1D4D91;
+  --s-radius: 6px;
+  --s-pad-y: .875rem;   /* lóðrétt bil milli starfa (þétt) */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* display á flex/grid yfirskrifar [hidden] úr stílblaði vafrans */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* Síðan sjálf er gegnsæ svo iframe-inn falli inn í síðuna sem hann er felldur inn í */
+body {
+  margin: 0;
+  background: transparent;
+  font-family: var(--s-font);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Bein slóð (ekki í iframe): smá bil í kringum */
+html.top-level body { padding: 1rem; }
+html.top-level { background: var(--s-bg); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- umgjörð ---------- */
+.storf-wrap { width: 100%; }
+
+.storf {
+  background: var(--s-bg);
+  color: var(--s-ink);
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
+  padding: 1rem;
+  text-align: left;
+}
+@media (min-width: 40rem) { .storf { padding: 1.5rem; } }
+
+/* ?frame=0 — enginn rammi og enginn bakgrunnur, fellur inn í síðuna */
+.storf.bare {
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ---------- haus og inngangur ---------- */
+.storf-head h1 {
+  margin: 0 0 .5rem;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+.storf-intro { margin: 0 0 1.25rem; color: var(--s-muted); max-width: 46rem; }
+
+/* ---------- síur ---------- */
+.storf-filters {
+  display: grid;
+  gap: .75rem 1rem;
+  grid-template-columns: 1fr;
+  margin: 0 0 .5rem;
+}
+@media (min-width: 36rem) {
+  .storf-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .field-search, .field-period { grid-column: 1 / -1; }
+}
+@media (min-width: 56rem) {
+  .storf-filters { grid-template-columns: 1.4fr 1fr 1.4fr; align-items: start; }
+  .field-search { grid-column: 1 / -1; }
+  .field-period { grid-column: auto; }
+}
+
+.field { margin: 0; padding: 0; border: 0; min-width: 0; }
+.field > label, .field > legend, .period label {
+  display: block;
+  padding: 0;
+  margin: 0 0 .25rem;
+  font-size: .875rem;
+  font-weight: 700;
+}
+.period { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .5rem; }
+.period > div { min-width: 0; }
+.period label { font-weight: 600; color: var(--s-muted); }
+
+input[type="search"], input[type="date"], select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--s-ink);
+  background: var(--s-bg);
+  border: 1.5px solid var(--s-control);
+  border-radius: var(--s-radius);
+  padding: .5rem .75rem;
+}
+.storf.bare input[type="search"], .storf.bare input[type="date"], .storf.bare select { background: transparent; }
+input[type="search"]::placeholder { color: var(--s-muted); opacity: 1; }
+select { appearance: auto; }
+
+/* Sýnilegur fókushringur á öllu sem er hægt að virkja, líka í dökku þema */
+.storf :focus-visible {
+  outline: 3px solid var(--s-accent-text);
+  outline-offset: 2px;
+}
+/* Dagsetningarreitur hefur fjóra tabstaði (mán., dag., ár, dagatalstákn); á tákninu
+   passar :focus-visible ekki við reitinn sjálfan, svo hringurinn fylgir :focus-within */
+.storf input[type="date"]:focus-within {
+  outline: 3px solid var(--s-accent-text);
+  outline-offset: 2px;
+}
+
+/* ---------- stöðulína ---------- */
+.storf-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  margin: 1rem 0 .25rem;
+}
+.storf-count { margin: 0; font-weight: 700; color: var(--s-ink); }
+.storf-count.is-empty { font-weight: 600; }
+
+.storf-notice {
+  margin: .5rem 0 0;
+  padding: .625rem .875rem;
+  border: 1px solid var(--s-line);
+  border-left: 4px solid var(--s-accent-text);
+  border-radius: var(--s-radius);
+  background: var(--s-soft);
+  font-size: .875rem;
+}
+
+.storf-error {
+  margin: 1rem 0 0;
+  padding: .875rem 1rem;
+  border: 1px solid var(--s-control);
+  border-left: 4px solid var(--s-accent-text);
+  border-radius: var(--s-radius);
+  background: var(--s-soft);
+}
+.storf-error p { margin: 0 0 .75rem; }
+
+/* ---------- hnappar og tenglar ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 2.5rem;
+  padding: .45rem 1rem;
+  font: inherit;
+  font-size: .9375rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: var(--s-radius);
+}
+.btn-primary { background: var(--s-accent); border-color: var(--s-accent); color: var(--s-on-accent); }
+.btn-secondary { background: transparent; border-color: var(--s-accent-text); color: var(--s-accent-text); }
+.btn-link {
+  min-height: 2.25rem;
+  padding: .25rem .5rem;
+  background: transparent;
+  color: var(--s-accent-text);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+.btn:hover { filter: brightness(.94); }
+.btn-primary:hover { filter: brightness(1.12); }
+.text-link { color: var(--s-accent-text); font-weight: 600; text-underline-offset: .2em; }
+.icon { flex: none; }
+.btn-toggle[aria-expanded="true"] .icon-chevron { transform: rotate(180deg); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .icon-chevron { transition: transform .15s ease; }
+}
+
+/* ---------- flokkar ---------- */
+.group { margin-top: 1.75rem; }
+.group:first-child { margin-top: 1rem; }
+.group-title {
+  margin: 0;
+  padding-bottom: .5rem;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 800;
+  border-bottom: 2px solid var(--s-accent-text);
+}
+.group-count { font-weight: 500; color: var(--s-muted); font-size: .9375rem; }
+
+/* ---------- störf (listi) ---------- */
+.jobs { list-style: none; margin: 0; padding: 0; }
+.job { padding: var(--s-pad-y) 0; border-bottom: 1px solid var(--s-line); }
+.job:last-child { border-bottom: 0; }
+.storf-results > .jobs { margin-top: 1rem; border-top: 1px solid var(--s-line); }
+
+.storf[data-spacing="normal"] { --s-pad-y: 1.375rem; }
+
+.job-kicker { margin: 0 0 .125rem; font-size: .8125rem; font-weight: 600; color: var(--s-muted); }
+.job-title { margin: 0; font-size: 1.125rem; line-height: 1.35; font-weight: 700; overflow-wrap: anywhere; }
+.job-meta { margin: .25rem 0 0; font-size: .875rem; color: var(--s-muted); overflow-wrap: anywhere; }
+.job-summary { margin: .5rem 0 0; font-size: .9375rem; overflow-wrap: anywhere; }
+.job-deadline { margin: .5rem 0 0; font-size: .875rem; font-weight: 700; }
+.job-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+
+.job-details { margin-top: .75rem; padding: .75rem 1rem; background: var(--s-soft); border-radius: var(--s-radius); }
+.job-details-body > :first-child { margin-top: 0; }
+.job-details-body > :last-child { margin-bottom: 0; }
+.job-details p, .job-details ul, .job-details ol { margin: .5rem 0; font-size: .9375rem; overflow-wrap: anywhere; }
+.job-details ul, .job-details ol { padding-left: 1.25rem; }
+.job-details-heading { margin: 1rem 0 .25rem; font-size: 1rem; font-weight: 700; }
+.job-details-link { margin-top: .75rem !important; }
+
+/* ---------- störf (spjöld) ---------- */
+.storf[data-view="cards"] .jobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem;
+  border-top: 0;
+}
+.storf[data-view="cards"] .storf-results > .jobs { border-top: 0; }
+.storf[data-view="cards"] .job {
+  display: flex;
+  padding: 1rem;
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius);
+  background: var(--s-bg);
+}
+.storf[data-view="cards"] .job:last-child { border-bottom: 1px solid var(--s-line); }
+.storf[data-view="cards"] .job article { display: flex; flex-direction: column; width: 100%; }
+.storf[data-view="cards"] .job-actions { margin-top: auto; padding-top: .75rem; }
+.storf.bare[data-view="cards"] .job { background: transparent; }
+
+/* ---------- þröngir skjáir ---------- */
+@media (max-width: 30rem) {
+  .job-actions .btn { flex: 1 1 100%; }
+  .storf-head h1 { font-size: 1.5rem; }
+}
+
+@media print {
+  .storf-filters, .storf-bar .btn, .job-actions { display: none !important; }
+}
