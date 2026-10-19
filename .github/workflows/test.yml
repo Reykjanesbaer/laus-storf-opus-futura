@@ -1,0 +1,33 @@
+# Próf við hverja breytingu. Einingapróf þurfa aðeins node (engar dependencies);
+# vafraprófin (útlit á síma og tölvu, aðgengi, öryggi, margar innfellingar) nota
+# Playwright og keyra í sérstöku verki.
+name: Próf
+
+on:
+  push:
+    branches-ignore: [main]   # main er prófað í deploy.yml áður en það er birt
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test "tests/*.test.js"
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Setja upp Playwright
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node tests/e2e/run.js

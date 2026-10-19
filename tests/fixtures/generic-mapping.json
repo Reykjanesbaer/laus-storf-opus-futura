@@ -1,0 +1,22 @@
+{
+  "$comment": "UPPSPUNI vörpun fyrir tests/fixtures/generic-feed.json — prófar vörpunarvélina, ekki Opus Futura.",
+  "jobsPath": "payload.items",
+  "fields": {
+    "id": "ref",
+    "title": "name",
+    "department": "unit",
+    "employmentType": "kind",
+    "location": "where",
+    "publishedAt": "posted",
+    "deadline": "closes",
+    "summary": "lead",
+    "description": "body",
+    "detailUrl": "links.detail",
+    "applyUrl": "links.apply",
+    "isGeneral": null
+  },
+  "descriptionFormat": "html",
+  "statusFilter": { "path": "state", "activeValues": ["open"] },
+  "generalApplication": { "path": null },
+  "allowedUrlHosts": []
+}

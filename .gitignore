@@ -1,0 +1,11 @@
+node_modules/
+_site/
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Búið til við birtingu af scripts/sync-jobs.js — aldrei vistað í repóinu
+data/jobs.json
+data/*.tmp-*
+_e2e/

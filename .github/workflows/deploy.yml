@@ -1,0 +1,116 @@
+# Birtir vefinn á GitHub Pages — ásamt nýjustu störfum úr Opus Futura.
+#
+# EIN keyrsla gerir allt: próf → vefur settur saman → störf sótt og staðfest →
+# birting. Þetta er viljandi ekki tvö vinnuflæði sem kveikja hvort á öðru, því
+# commit frá GITHUB_TOKEN kveikir ekki á öðrum vinnuflæðum. Gögnin eru ekki
+# vistuð í repóinu; þau fara beint í birtingarmöppuna (_site/data/jobs.json).
+#
+# Ef samstilling mistekst:
+#   • tímasett keyrsla (á ~30 mín fresti): hættir með villu og birtir EKKERT —
+#     vefurinn sem er í birtingu núna helst óbreyttur.
+#   • keyrsla vegna kóðabreytingar eða handvirk: síðustu birtu störf eru sótt af
+#     vefnum og birt aftur (fetchedAt óbreytt, svo vefurinn sýnir að þau séu
+#     orðin gömul). Aldrei er birtur tómur listi vegna villu.
+#   • engin fyrri gögn til (fyrsta birting): vefurinn er birtur án gagna og sýnir
+#     villuskilaboð — ekki „engin laus störf“.
+name: Birta á GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Á 30 mín fresti. Mínútur 7 og 37 til að forðast álagstoppa á heilu tímunum.
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Ein birting í einu; ný keyrsla bíður frekar en að hætta við.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      # Valfrjálst: yfirskrifa slóð Opus Futura (Settings → Variables → OPUS_FEED_URL)
+      OPUS_FEED_URL: ${{ vars.OPUS_FEED_URL }}
+      # Slóðin sem er í birtingu núna (notuð til að sækja síðustu gögn ef samstilling mistekst)
+      LIVE_BASE: ${{ vars.PAGES_BASE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Próf
+        run: node --test "tests/*.test.js"
+
+      - name: Setja vefinn saman
+        run: node scripts/build-site.js --out _site
+
+      - name: Sækja og staðfesta störf úr Opus Futura
+        id: sync
+        continue-on-error: true
+        run: node scripts/sync-jobs.js --out _site/data/jobs.json
+
+      - name: Samstilling mistókst — sækja síðustu birtu gögn
+        id: previous
+        if: steps.sync.outcome == 'failure'
+        run: |
+          set +e
+          node scripts/reuse-live-data.js --url "${LIVE_BASE}data/jobs.json" --out _site/data/jobs.json
+          code=$?
+          if [ "$code" -eq 0 ]; then echo "mode=previous" >> "$GITHUB_OUTPUT"
+          elif [ "$code" -eq 3 ]; then echo "mode=none" >> "$GITHUB_OUTPUT"
+          else echo "mode=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Hætta án þess að birta ef ný gögn fengust ekki (tímasett keyrsla)
+        if: steps.sync.outcome == 'failure' && github.event_name == 'schedule'
+        run: |
+          echo "::error::Samstilling við Opus Futura mistókst. Ekkert var birt; vefurinn sem er í birtingu núna helst óbreyttur."
+          exit 1
+
+      - name: Hætta ef fyrri gögn eru til en ekki náðist í þau
+        if: steps.previous.outputs.mode == 'failed'
+        run: |
+          echo "::error::Samstilling mistókst og ekki tókst að sækja síðustu birtu gögn. Ekkert var birt svo störfin hverfi ekki af vefnum."
+          exit 1
+
+      - name: Yfirlit
+        if: always()
+        run: |
+          {
+            echo "## Laus störf"
+            if [ "${{ steps.sync.outcome }}" = "success" ]; then
+              echo "- ✅ Ný gögn sótt og staðfest. fetchedAt: \`$(node -e "console.log(require('./_site/data/jobs.json').fetchedAt)")\`"
+            elif [ "${{ steps.previous.outputs.mode }}" = "previous" ]; then
+              echo "- ⚠️ Samstilling mistókst. **Síðustu birtu gögn voru notuð** (fetchedAt óbreytt)."
+            elif [ "${{ steps.previous.outputs.mode }}" = "none" ]; then
+              echo "- ⚠️ Samstilling mistókst og engin fyrri gögn eru til. Vefurinn er birtur án gagna og sýnir villuskilaboð."
+            else
+              echo "- ❌ Ekkert birt."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.sync.outcome }}" = "failure" ]; then
+            echo "::warning::Samstilling við Opus Futura mistókst (sjá skrefið „Sækja og staðfesta störf“)."
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

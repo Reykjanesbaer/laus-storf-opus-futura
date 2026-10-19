@@ -1,0 +1,95 @@
+/*
+ * Kóðasmiður — útlit. Sama útlit og kóðasmiður leikskólagjaldareiknivélarinnar
+ * (leikskolagjald-reiknivel/ritstjorn/) svo ritstjórar finni sig heima.
+ */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../storf/fonts/PlusJakartaSans-latin-wght.woff2") format("woff2");
+}
+
+:root {
+  --page: #EEF1F3; --panel: #FFFFFF; --ink: #1F2629; --muted: #4F5A60; --line: #D5DCDF; --control: #7B868B;
+  --accent: #1D4D91; --on-accent: #FFFFFF; --danger: #B3162A;
+  --font: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --page: #16191B; --panel: #1F2427; --ink: #E7ECEE; --muted: #A7B2B7; --line: #323B3F; --control: #7F8B91;
+    --accent: #8FB4E4; --on-accent: #10151A; --danger: #F2788A; color-scheme: dark; }
+}
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); font-size: 1rem; line-height: 1.5; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+h1 { font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.3rem); line-height: 1.15; margin: 0 0 .35rem; }
+.lede { color: var(--muted); margin: 0 0 .75rem; max-width: 42rem; }
+.data-status { margin: 0 0 1.25rem; font-size: .9rem; color: var(--muted); }
+h2 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+h3 { font-size: 1rem; font-weight: 700; margin: 0 0 .75rem; }
+code { font-size: .88em; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- forskoðun ---------- */
+.sec-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; flex-wrap: wrap; }
+.stage { padding: 1.25rem; border-radius: 16px; background:
+  repeating-conic-gradient(color-mix(in srgb, var(--line) 45%, transparent) 0 25%, transparent 0 50%) 0 0 / 18px 18px; }
+/* Án ramma er vefurinn gegnsær; þá sýnir sviðið lit „síðunnar“ sem hann er á (í lit þemans) */
+.stage.solid { background-image: none; }
+.holder { width: 100%; }
+#preview { display: block; width: 100%; height: 1000px; border: 0; color-scheme: normal; }
+
+/* ---------- stillingar ---------- */
+.settings, .code { margin-top: 1.25rem; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.25rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.1rem 1.75rem; }
+.ctl .head { font-weight: 700; font-size: .95rem; display: flex; justify-content: space-between; gap: .5rem; margin-bottom: .3rem; }
+.ctl output { font-weight: 500; color: var(--muted); }
+.ctl .note2 { color: var(--muted); font-size: .85rem; margin: .3rem 0 0; }
+.ctl .err { color: var(--danger); font-size: .85rem; font-weight: 600; margin: .3rem 0 0; }
+fieldset.ctl { border: 0; margin: 0; padding: 0; min-width: 0; }
+fieldset.ctl > legend { padding: 0; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+select, input[type=text], input[type=number] { width: 100%; font: inherit; font-size: .95rem; padding: .45rem .6rem; min-height: 2.5rem;
+  border-radius: 8px; border: 1.5px solid var(--control); background: var(--panel); color: var(--ink); }
+input[aria-invalid=true] { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
+.seg-ctl { display: flex; border: 1.5px solid var(--control); border-radius: 9px; overflow: hidden; }
+.seg-ctl label { flex: 1; text-align: center; padding: .4rem .5rem; cursor: pointer; font-size: .92rem; }
+.seg-ctl input { position: absolute; opacity: 0; pointer-events: none; }
+.seg-ctl label:has(input:checked) { background: var(--accent); color: var(--on-accent); font-weight: 700; }
+.seg-ctl label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: -3px; }
+.seg-small label { font-size: .85rem; padding: .3rem .6rem; }
+.checks { display: grid; gap: .4rem; }
+.checks label { display: flex; gap: .55rem; align-items: center; font-size: .95rem; cursor: pointer; min-height: 1.75rem; }
+.checks input { accent-color: var(--accent); width: 1.1rem; height: 1.1rem; flex: none; }
+.wrow { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem; gap: .5rem; align-items: center; }
+.crow { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: .5rem; align-items: center; }
+.crow input[type=color] { width: 2.6rem; height: 2.5rem; padding: 0; border: 1.5px solid var(--control); border-radius: 8px; background: none; cursor: pointer; }
+.crow input[type=text] { text-transform: uppercase; }
+.crow input[type=text]::placeholder { text-transform: none; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 1.25rem 0; }
+
+.btn { font: inherit; font-size: .9rem; font-weight: 700; border-radius: 9px; padding: .45rem .85rem; min-height: 2.25rem; cursor: pointer;
+  border: 1.5px solid var(--control); background: transparent; color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.warn { margin: .75rem 0 0; padding: .6rem .8rem; border-radius: 9px; font-size: .9rem;
+  background: color-mix(in srgb, var(--danger) 12%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent); }
+.info { margin: .75rem 0 0; padding: .6rem .8rem; border-radius: 9px; font-size: .9rem;
+  background: var(--page); border: 1px solid var(--line); border-left: 4px solid var(--accent); }
+.hint { color: var(--muted); font-size: .9rem; margin: .5rem 0 0; max-width: 40rem; }
+.hint p { margin: 0 0 .4rem; }
+
+/* ---------- kóði ---------- */
+.code h2 { margin-bottom: .75rem; }
+.tabs { display: flex; gap: .5rem; margin-bottom: .75rem; flex-wrap: wrap; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+pre { margin: 0; overflow-x: auto; background: var(--page); border-radius: 10px; padding: .9rem 1rem;
+  font-size: .85rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.code-foot { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-top: .5rem; flex-wrap: wrap; }
+.copy-row { padding-top: .5rem; }

@@ -1,0 +1,76 @@
+{
+  "_note": "UPPSPUNI. Gerviafóður til að prófa vörpunarvélina — þetta er EKKI snið Opus Futura.",
+  "meta": { "generatedFor": "tests" },
+  "payload": {
+    "items": [
+      {
+        "ref": 101,
+        "name": "Prófun – Fyrsta starf",
+        "unit": { "name": "Menntasvið" },
+        "kind": "Fullt starf",
+        "where": "Skóli A",
+        "posted": "2026-10-05",
+        "closes": "26.10.2026",
+        "lead": "Stutt samantekt.",
+        "body": "<p>Fyrsta málsgrein &amp; fleira.</p><h3>Verkefni</h3><ul><li>Eitt</li><li>Tvö</li></ul><script>alert(1)</script>",
+        "links": { "detail": "https://example.org/a", "apply": "https://example.org/a/apply" },
+        "state": "open"
+      },
+      {
+        "ref": 102,
+        "name": "Prófun – Starf með ógilda umsóknarslóð",
+        "unit": { "name": "Velferðarsvið" },
+        "closes": "2026-11-30",
+        "links": { "detail": "https://example.org/b", "apply": "http://example.org/b/apply" },
+        "state": "open"
+      },
+      {
+        "ref": 101,
+        "name": "Prófun – Tvítekið auðkenni",
+        "unit": { "name": "Menntasvið" },
+        "closes": "2026-11-30",
+        "links": { "apply": "https://example.org/dup" },
+        "state": "open"
+      },
+      {
+        "ref": 103,
+        "name": "Prófun – Útrunnið",
+        "unit": { "name": "Menntasvið" },
+        "closes": "2026-10-01",
+        "links": { "apply": "https://example.org/old" },
+        "state": "open"
+      },
+      {
+        "ref": 104,
+        "name": "Prófun – Lokað í kerfinu",
+        "unit": { "name": "Menntasvið" },
+        "closes": "2026-12-01",
+        "links": { "apply": "https://example.org/closed" },
+        "state": "closed"
+      },
+      {
+        "ref": 105,
+        "name": "",
+        "unit": { "name": "Menntasvið" },
+        "links": { "apply": "https://example.org/notitle" },
+        "state": "open"
+      },
+      {
+        "ref": 106,
+        "name": "Prófun – Almenn umsókn",
+        "unit": { "name": "Almenn umsókn" },
+        "closes": "2026-12-31",
+        "links": { "apply": "https://example.org/general" },
+        "state": "open"
+      },
+      {
+        "ref": 107,
+        "name": "Prófun – javascript-slóð",
+        "unit": { "name": "Menntasvið" },
+        "closes": "2026-12-31",
+        "links": { "apply": "javascript:alert(1)", "detail": "https://user:pass@example.org/x" },
+        "state": "open"
+      }
+    ]
+  }
+}
