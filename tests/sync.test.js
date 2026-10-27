@@ -19,9 +19,29 @@ function tmpdir() { return fs.mkdtempSync(path.join(os.tmpdir(), 'storf-')); }
 
 /* ---------- vörpunarvélin ---------- */
 
-test('vörpun: raunverulega vörpunin er óútfyllt og samstilling neitar að giska', () => {
+test('Opus Futura: staðfest tómt jobs-fylki skilar gildum tómlista', () => {
   const real = P.loadMapping();
-  assert.throws(() => S.buildFromRaw(FEED, real, NOW), (e) => e.code === 'MAPPING_UNCONFIGURED');
+  assert.equal(real.jobsPath, 'jobs');
+  const { doc, stats } = S.buildFromRaw({ workplace: 'Reykjanesbær', jobs: [] }, real, NOW);
+  assert.equal(stats.received, 0);
+  assert.equal(stats.published, 0);
+  assert.deepEqual(doc.jobs, []);
+  assert.equal(N.validateDocument(doc).ok, true);
+});
+
+test('Opus Futura: ef jobs verður ekki tómt er óstaðfest vörpun höfnun, aldrei falskur tómlisti', () => {
+  const real = P.loadMapping();
+  assert.throws(
+    () => S.buildFromRaw({ workplace: 'Reykjanesbær', jobs: [{ id: '1', title: 'Starf' }] }, real, NOW),
+    (e) => e.code === 'MAPPING_UNCONFIGURED'
+  );
+});
+
+test('Opus Futura: rangt gagnasnið er alltaf villa', () => {
+  const real = P.loadMapping();
+  for (const raw of [{}, { workplace: 'Reykjanesbær' }, { jobs: null }, { jobs: {} }, { jobs: '[]' }]) {
+    assert.throws(() => S.buildFromRaw(raw, real, NOW), (e) => e.code === 'SHAPE');
+  }
 });
 
 test('vörpun: gögn fara rétta leið — hlutur sem svið, HTML hreinsað, ógild slóð felld burt', () => {
@@ -202,11 +222,11 @@ test('samstilling: MISTÖKST → fyrri skrá er ósnert (aldrei yfirskrifuð me�
   }
 });
 
-test('samstilling: óútfyllt vörpun skrifar ekkert og gefur sérstakan kóða', async () => {
+test('samstilling: óþekkt starf í raunverulegu sniði skrifar ekkert og gefur sérstakan kóða', async () => {
   const dir = tmpdir();
   const out = path.join(dir, 'jobs.json');
   const input = path.join(dir, 'in.json');
-  fs.writeFileSync(input, JSON.stringify(FEED));
+  fs.writeFileSync(input, JSON.stringify({ workplace: 'Reykjanesbær', jobs: [{ id: '1', title: 'Starf' }] }));
   await assert.rejects(S.main(['--input', input, '--out', out]), (e) => e.code === 'MAPPING_UNCONFIGURED');
   assert.equal(fs.existsSync(out), false);
 });
