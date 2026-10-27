@@ -15,29 +15,29 @@ og ein GitHub Actions-keyrsla sem sækir störfin á 30 mínútna fresti.
 
 ---
 
-## Staða: vörpun á gagnasniði Opus Futura er óútfyllt
+## Staða gagnatengingar við Opus Futura
 
-Kóðinn, vefurinn, kóðasmiðurinn, innfellingin, samstillingin og birtingin eru tilbúin og prófuð.
-Eitt vantar áður en raunveruleg störf birtast: **hvaða reitir í JSON-inu frá Opus Futura hafa hvaða merkingu**.
+Við sannprófun 27. október 2026 svaraði opinbera JSON-slóðin:
 
-Verkbeiðnin bannar að giska á reitaheiti, og JSON-ið var ekki aðgengilegt þegar vefurinn var smíðaður
-(vinnuumhverfið hafði ekki netaðgang að `workplace.opusfutura.com`). Því er vörpunin í
-[`scripts/opus-mapping.json`](scripts/opus-mapping.json) óútfyllt, og **samstillingin neitar að keyra
-(og birtir ekkert) þar til hún er fyllt út**. Hún býr aldrei til störf eða umsóknarslóðir.
+```json
+{ "workplace": "Reykjanesbær", "jobs": [] }
+```
 
-Svona er það gert (tekur nokkrar mínútur):
+`jobsPath` í [`scripts/opus-mapping.json`](scripts/opus-mapping.json) hefur verið staðfest sem `jobs`.
+**Rétt byggður tómur listi** er gild staða: þá sýnir vefurinn „Engin laus störf eru auglýst sem stendur.“
+Þetta er ólíkt 404, ógildu JSON eða bilun á þjónustunni, sem eiga áfram að vera villur.
 
-1. Farðu í **Actions → „Skoða JSON frá Opus Futura“ → Run workflow**. Keyrslan sækir JSON-ið á GitHub-þjóni og
-   birtir **byggingu** þess í yfirliti keyrslunnar: slóð og gerð hvers reits (t.d. `jobs[0].deadline : dagsetning D.M.YYYY`)
-   ásamt stuttu sýnishorni úr fyrsta starfi.
-   Staðbundið: `npm run inspect` (þarf aðgang að netinu).
-2. Fylltu út [`scripts/opus-mapping.json`](scripts/opus-mapping.json) — sjá [Vörpun](#vörpun-á-gagnasniði-opus-futura).
-3. Prófaðu staðbundið: `npm run sync` skrifar `data/jobs.json`; opnaðu það og berðu saman við
-   [núverandi síðu](https://www.reykjanesbaer.is/reykjanesbaer/mannaudur-og-laus-storf/laus-storf).
-4. Settu breytinguna í `main`. Birtingin keyrir, sækir störfin og birtir vefinn.
+**Ólokið:** Opus Futura skilaði engri virkri auglýsingu við sannprófun. Ekki var hægt að sannreyna
+heiti og gögn reita inni í staki úr `jobs`. Þess vegna eru `fields.*` áfram óútfylltir.
+Ef `jobs` verður ekki tómt áður en þau hafa verið staðfest, stöðvast samstilling með
+`MAPPING_UNCONFIGURED` frekar en að birta uppdiktaðar auglýsingar eða falsa tómstöðu.
 
-Á meðan vörpunin er óútfyllt: tímasettar keyrslur enda með villu (sem er ætlunin — enginn á að halda að birting virki)
-og vefurinn er birtur án gagna og sýnir „Ekki tókst að sækja laus störf“ — **ekki** „Engin laus störf“.
+Til að klára vörpun þegar störf birtast:
+
+1. Farðu í **Actions → Skoða JSON frá Opus Futura → Run workflow** eða keyrðu `npm run inspect`.
+2. Staðfestu raunverulega reiti starfsauglýsinga og fylltu út `scripts/opus-mapping.json`, sérstaklega
+   `title`, `id`, `detailUrl` og `applyUrl` ef þeir eru tiltækir.
+3. Keyrðu `npm run sync`, staðfestu að umsóknarslóðir virki, og prófaðu áður en ný vörpun er birt.
 
 **Óstaðfest hönnunaratriði** (vinnuumhverfið hafði heldur ekki aðgang að `reykjanesbaer.is`; hönnunin byggist á HTML-uppbyggingu síðunnar
 sem fékkst afhent, ekki á stílblöðunum): litir, bil og leturstærðir eru nálgun. Þeir eru allir CSS-breytur efst í
@@ -170,7 +170,7 @@ Einu sinni, í repóinu `Reykjanesbaer/laus-storf-opus-futura`:
 
 1. **Settings → Pages → Build and deployment → Source: GitHub Actions.** (Ekki „Deploy from a branch“.)
 2. **Settings → Actions → General → Workflow permissions**: „Read repository contents“ nægir; vinnuflæðið biður sjálft um `pages: write` og `id-token: write`.
-3. Fylltu út vörpunina (sjá [Staða](#staða-vörpun-á-gagnasniði-opus-futura-er-óútfyllt)).
+3. Staðfestu vörpun reita áður en raunverulegar auglýsingar birtast (sjá [Staða gagnatengingar](#staða-gagnatengingar-við-opus-futura)).
 4. Settu kóðann í `main` (eða keyrðu **Actions → Birta á GitHub Pages → Run workflow**). Slóðin birtist í yfirliti keyrslunnar.
 
 Valfrjálsar GitHub-breytur (**Settings → Secrets and variables → Actions → Variables**): `OPUS_FEED_URL` (önnur slóð á JSON) og
