@@ -1,6 +1,6 @@
 {
-  "$comment": "Vörpun frá JSON Opus Futura yfir á okkar snið. ÓÚTFYLLT þar til gagnasniðið hefur verið staðfest: keyrðu `npm run inspect` (eða vinnuflæðið „Skoða JSON frá Opus Futura“ í GitHub), lestu byggingu JSON-sins og settu raunverulegar slóðir hér. Slóðir eru með punktum (t.d. \"department.name\"); listi af slóðum þýðir „fyrsta ekki-tóma gildi“. null = reiturinn er ekki til. Sjá README.",
-  "jobsPath": null,
+  "$comment": "Raunverulega staðfest rót gagnasniðs Opus Futura (27.10.2026): { workplace: \"Reykjanesbær\", jobs: [] }. Þegar jobs er tómt má birta staðfestan tóman lista. Þegar auglýsing birtist þarf að staðfesta og útfylla fields áður en nokkur störf birtast; keyrðu npm run inspect þegar jobs hefur stök. Ekki giska á reiti eða umsóknarslóðir.",
+  "jobsPath": "jobs",
   "fields": {
     "id": null,
     "title": null,
@@ -16,7 +16,12 @@
     "isGeneral": null
   },
   "descriptionFormat": "html",
-  "statusFilter": { "path": null, "activeValues": [] },
-  "generalApplication": { "path": null },
+  "statusFilter": {
+    "path": null,
+    "activeValues": []
+  },
+  "generalApplication": {
+    "path": null
+  },
   "allowedUrlHosts": []
 }

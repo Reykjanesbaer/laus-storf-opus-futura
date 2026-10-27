@@ -126,7 +126,7 @@ const section = (t) => console.log('\n' + t);
     await check('lang="is", ein h1, flokkar eru h2, störf eru h3', async () => {
       assert.equal(await page.getAttribute('html', 'lang'), 'is');
       assert.equal(await page.locator('h1').count(), 1);
-      assert.equal(await page.locator('h1').innerText(), 'Laus störf');
+      assert.equal(await page.locator('h1').innerText(), 'Laus störf í gegnum Opus Futura');
       assert.equal(await page.locator('h2').count(), 5);
       assert.equal(await page.locator('li.job h3.job-title').count(), exp.length);
     });
@@ -478,7 +478,7 @@ const section = (t) => console.log('\n' + t);
       scenario = () => null;
       await page.goto(APP);
       await page.locator('#error').waitFor({ state: 'visible' });
-      assert.match(await page.locator('#errorText').innerText(), /Ekki tókst að sækja laus störf/);
+      assert.match(await page.locator('#errorText').innerText(), /Ekki tókst að birta laus störf úr Opus Futura/);
       assert.equal(await page.getAttribute('#error', 'role'), 'alert');
       assert.equal(/Engin laus störf eru auglýst/.test(await page.locator('body').innerText()), false);
       assert.equal(await page.locator('li.job').count(), 0);
@@ -895,7 +895,7 @@ const section = (t) => console.log('\n' + t);
     await check('rót sýnir ekki ritstjórann og ritstjóri er á /ritstjorn/', async () => {
       const page = await newPage();
       await page.goto(SITE); await ready(page);
-      assert.equal(await page.locator('h1').innerText(), 'Laus störf');
+      assert.equal(await page.locator('h1').innerText(), 'Laus störf í gegnum Opus Futura');
       assert.equal(await page.locator('[role=tablist]').count(), 0);
       await page.context().close();
     });

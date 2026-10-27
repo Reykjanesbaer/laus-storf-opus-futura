@@ -107,11 +107,18 @@ function checkMapping(m) {
  * Kastar ProviderError ef sniðið er ekki það sem vörpunin segir til um.
  */
 function extractCandidates(raw, mapping) {
-  checkMapping(mapping);
+  // Lagað gagnasnið staðfest 2026-10-27: { workplace: "...", jobs: [] }.
+  // Ef listinn er í raun tómur þarf ekki að þekkja reiti í einstöku starfi.
+  // Um leið og jobs inniheldur færslur krefjumst við staðfestrar vörpunar.
+  if (!mapping || mapping.jobsPath === null || mapping.jobsPath === undefined) checkMapping(mapping);
   var list = getPath(raw, mapping.jobsPath);
   if (!Array.isArray(list)) {
     throw new ProviderError('SHAPE', 'Starfalistinn fannst ekki þar sem vörpunin segir til um (jobsPath).');
   }
+  if (list.length === 0) {
+    return { candidates: [], skipped: { inactive: 0 }, total: 0 };
+  }
+  checkMapping(mapping);
 
   var f = mapping.fields;
   var st = mapping.statusFilter || {};

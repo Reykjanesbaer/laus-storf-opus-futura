@@ -380,7 +380,7 @@
         render();
       })
       .catch(function () {
-        showError('Ekki tókst að sækja laus störf núna. Þetta er ekki það sama og að engin störf séu laus — reyndu aftur eftir stutta stund.');
+        showError('Ekki tókst að birta laus störf úr Opus Futura í augnablikinu. Vinsamlegast reyndu aftur síðar.');
       });
   }
 
