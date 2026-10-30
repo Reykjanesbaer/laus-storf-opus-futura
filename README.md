@@ -3,7 +3,7 @@
 Laus störf hjá Reykjanesbæ — sjálfstæð, innfellanleg samantekt á auglýstum störfum.
 Störfin koma úr Opus Futura, en útlitið, leitin, síurnar og framsetningin eru okkar eigin.
 Engin þjónusta, enginn gagnagrunnur og enginn netþjónn: bara statískar skrár á GitHub Pages
-og ein GitHub Actions-keyrsla sem sækir störfin á 30 mínútna fresti.
+og ein GitHub Actions-keyrsla sem athugar Opus Futura á 15 mínútna fresti.
 
 **Vefurinn:** <https://reykjanesbaer.github.io/laus-storf-opus-futura/>
 **Forskoðun og kóðasmiður:** <https://reykjanesbaer.github.io/laus-storf-opus-futura/ritstjorn/>
@@ -17,27 +17,38 @@ og ein GitHub Actions-keyrsla sem sækir störfin á 30 mínútna fresti.
 
 ## Staða gagnatengingar við Opus Futura
 
-Við sannprófun 27. október 2026 svaraði opinbera JSON-slóðin:
+Gagnasnið Opus Futura er **staðfest** (30. október 2026) og vörpunin í
+[`scripts/opus-mapping.json`](scripts/opus-mapping.json) er útfyllt. Straumurinn er:
 
 ```json
-{ "workplace": "Reykjanesbær", "jobs": [] }
+{ "workplace": "Reykjanesbær",
+  "jobs": [ { "title": "…", "excerpt": "…", "department": "Velferðarsvið",
+              "postedDate": "2026-10-29", "deadline": "2026-11-10",
+              "url": "https://workplace.opusfutura.com/advert/…" } ] }
 ```
 
-`jobsPath` í [`scripts/opus-mapping.json`](scripts/opus-mapping.json) hefur verið staðfest sem `jobs`.
-**Rétt byggður tómur listi** er gild staða: þá sýnir vefurinn „Engin laus störf eru auglýst sem stendur.“
-Þetta er ólíkt 404, ógildu JSON eða bilun á þjónustunni, sem eiga áfram að vera villur.
+| Reitur í straumnum | Notaður sem |
+| --- | --- |
+| `title` | heiti starfs |
+| `department` | svið/flokkur („Almenn umsókn“ þekkist af heitinu) |
+| `postedDate` | auglýst (`YYYY-MM-DD`) |
+| `deadline` | umsóknarfrestur (`YYYY-MM-DD`; gildir út daginn að íslenskum tíma) |
+| `excerpt` | samantekt (Opus Futura klippir hana sjálft með „…“) |
+| `url` | auglýsingin á vef Opus Futura — **eina slóðin sem straumurinn gefur**, því hún er notuð bæði fyrir „Nánar um starf“ og „Sækja um“ |
 
-**Ólokið:** Opus Futura skilaði engri virkri auglýsingu við sannprófun. Ekki var hægt að sannreyna
-heiti og gögn reita inni í staki úr `jobs`. Þess vegna eru `fields.*` áfram óútfylltir.
-Ef `jobs` verður ekki tómt áður en þau hafa verið staðfest, stöðvast samstilling með
-`MAPPING_UNCONFIGURED` frekar en að birta uppdiktaðar auglýsingar eða falsa tómstöðu.
+Straumurinn hefur **ekkert auðkenni, enga tegund starfs, enga staðsetningu, enga fulla lýsingu og enga sérstaka umsóknarslóð**.
+Þeir reitir eru `null` í vörpuninni og ekkert er búið til í staðinn; auðkenni starfs er slóð auglýsingarinnar.
+Slóðir verða að vera `https` á `opusfutura.com` (`allowedUrlHosts`), annars er starfið fellt burt.
 
-Til að klára vörpun þegar störf birtast:
+Þrjár mismunandi stöður eru aðgreindar:
 
-1. Farðu í **Actions → Skoða JSON frá Opus Futura → Run workflow** eða keyrðu `npm run inspect`.
-2. Staðfestu raunverulega reiti starfsauglýsinga og fylltu út `scripts/opus-mapping.json`, sérstaklega
-   `title`, `id`, `detailUrl` og `applyUrl` ef þeir eru tiltækir.
-3. Keyrðu `npm run sync`, staðfestu að umsóknarslóðir virki, og prófaðu áður en ný vörpun er birt.
+- **Réttur tómur listi** (`jobs: []`): vefurinn sýnir „Engin laus störf eru auglýst sem stendur.“
+- **Breytt snið** (t.d. `title` verður `name`, stöðureitur hverfur, lénið breytist): samstillingin stöðvast með `QUALITY` eða `MAPPING_UNCONFIGURED`
+  og birtir ekkert nýtt — aldrei falskan tómlista.
+- **Bilun** (404, ógilt JSON, netvilla): villa; vefurinn sem er í birtingu helst óbreyttur.
+
+Ef Opus Futura bætir við reitum (t.d. tegund starfs eða umsóknarslóð) skaltu keyra **Actions → Skoða JSON frá Opus Futura → Run workflow**
+(eða `npm run inspect`) og bæta þeim við í `scripts/opus-mapping.json`.
 
 **Óstaðfest hönnunaratriði** (vinnuumhverfið hafði heldur ekki aðgang að `reykjanesbaer.is`; hönnunin byggist á HTML-uppbyggingu síðunnar
 sem fékkst afhent, ekki á stílblöðunum): litir, bil og leturstærðir eru nálgun. Þeir eru allir CSS-breytur efst í
@@ -76,9 +87,15 @@ próf → vefur settur saman → störf sótt og staðfest → birting á GitHub
 
 | Hvenær | Hvers vegna |
 | --- | --- |
-| á 30 mínútna fresti (`7,37 * * * *`) | ný og lokuð störf birtast sjálfkrafa |
+| á 15 mínútna fresti (`4,19,34,49 * * * *`) | ný og lokuð störf birtast sjálfkrafa — **birt er aðeins ef eitthvað hefur breyst** eða birt gögn eru orðin ≥ 60 mín. gömul |
 | við hverja breytingu á `main` | kóðabreytingar fara í loftið |
 | handvirkt (**Run workflow**) | strax, t.d. eftir að starf er auglýst |
+
+**Tíðni — athugið.** GitHub keyrir tímasett vinnuflæði „eftir bestu getu“: keyrslum er seinkað eða sleppt þegar álag er mikið, og dæmi sáust um
+4–7 klst. milli keyrslna þótt skráð væri á 30 mínútna fresti. Þess vegna er tíðnin 15 mínútur: markmiðið er að ný auglýsing sé komin á vefinn innan
+**2 klst.**, og það næst svo lengi sem ein keyrsla af hverjum átta berst. Keyrsla sem finnur engar breytingar birtir ekki Pages aftur
+([`scripts/should-deploy.js`](scripts/should-deploy.js)), svo tíðnin kostar nánast ekkert; hún birtir þó að minnsta kosti einu sinni á klukkustund
+til að „uppfært“-tíminn haldist réttur. Þarf strax? Notaðu **Run workflow**. Þarf algera vissu? Láttu utanaðkomandi þjónustu kalla á API-ið (`workflow_dispatch`) á 30 mínútna fresti.
 
 Það er viljandi **ekki** tvö vinnuflæði (eitt sem vistar gögn og annað sem birtir): commit frá `GITHUB_TOKEN` kveikir ekki á öðrum vinnuflæðum,
 svo slíkt fyrirkomulag bilar hljóðlega. Gögnin eru ekki vistuð í repóinu; þau fara beint í birtingarmöppuna.
@@ -151,9 +168,10 @@ storf/
   fonts/                Plus Jakarta Sans (sjálfhýst, SIL OFL)
 scripts/
   sync-jobs.js          Sækir og staðfestir störf → data/jobs.json
-  opus-mapping.json     Vörpun frá gagnasniði Opus Futura (ÓÚTFYLLT)
+  opus-mapping.json     Vörpun frá gagnasniði Opus Futura (staðfest 30.10.2026)
   lib/provider.js       Vörpunarvél og skoðun á byggingu JSON
   reuse-live-data.js    Notar síðustu birtu gögn ef samstilling mistekst
+  should-deploy.js      Segir hvort tímasett keyrsla þurfi að birta (breytingar eða gömul gögn)
   build-site.js         Setur saman birtingarmöppuna (_site/)
   dev-server.js         Staðbundinn þjónn (með --fixture: uppspunnin prófunargögn)
 data/                   jobs.json er búið til við birtingu (ekki í repóinu)
@@ -170,7 +188,7 @@ Einu sinni, í repóinu `Reykjanesbaer/laus-storf-opus-futura`:
 
 1. **Settings → Pages → Build and deployment → Source: GitHub Actions.** (Ekki „Deploy from a branch“.)
 2. **Settings → Actions → General → Workflow permissions**: „Read repository contents“ nægir; vinnuflæðið biður sjálft um `pages: write` og `id-token: write`.
-3. Staðfestu vörpun reita áður en raunverulegar auglýsingar birtast (sjá [Staða gagnatengingar](#staða-gagnatengingar-við-opus-futura)).
+3. Vörpun reita er staðfest og útfyllt (sjá [Staða gagnatengingar](#staða-gagnatengingar-við-opus-futura)).
 4. Settu kóðann í `main` (eða keyrðu **Actions → Birta á GitHub Pages → Run workflow**). Slóðin birtist í yfirliti keyrslunnar.
 
 Valfrjálsar GitHub-breytur (**Settings → Secrets and variables → Actions → Variables**): `OPUS_FEED_URL` (önnur slóð á JSON) og
@@ -315,7 +333,7 @@ Hluti af þessu er sannreyndur sjálfvirkt (`tests/e2e`); handvirk skjálesarapr
 
 | Einkenni | Líkleg orsök og lagfæring |
 | --- | --- |
-| Vefurinn segir „Ekki tókst að sækja laus störf“ | `data/jobs.json` vantar eða er skemmt. Skoðaðu síðustu keyrslu í **Actions**. Óútfyllt vörpun gefur kóðann `MAPPING_UNCONFIGURED`. |
+| Vefurinn segir „Ekki tókst að sækja laus störf“ | `data/jobs.json` vantar eða er skemmt. Skoðaðu síðustu keyrslu í **Actions**. Kóðinn í skránni segir til um ástæðuna (`MAPPING_UNCONFIGURED` eða `QUALITY` þýða að snið Opus Futura hefur breyst). |
 | „Engin laus störf eru auglýst sem stendur“ en störf eru auglýst | Samstillingin skilaði tómum lista úr réttu svari. Keyrðu `npm run inspect` og berðu saman við vörpunina (`jobsPath`, `statusFilter`). |
 | „… kunna að vera úreltar“ | Samstilling hefur ekki tekist í > 12 klst. Skoðaðu Actions; mögulega hefur GitHub slökkt á tímasettri keyrslu (sjá athugasemd hér að ofan). |
 | Tímasett keyrsla endar með villu | Opus Futura óaðgengilegt eða sniðið breytt. Vefurinn helst óbreyttur. Villukóði stendur í skránni (`HTTP_…`, `JSON`, `SHAPE`, `QUALITY`, `TIMEOUT`). |

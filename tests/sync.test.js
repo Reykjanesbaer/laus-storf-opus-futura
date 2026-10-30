@@ -29,12 +29,97 @@ test('Opus Futura: staðfest tómt jobs-fylki skilar gildum tómlista', () => {
   assert.equal(N.validateDocument(doc).ok, true);
 });
 
+/* Vörpun þar sem aðeins jobsPath er þekkt — eins og staðan var meðan jobs var tómt */
+const UNMAPPED = { jobsPath: 'jobs', fields: { id: null, title: null, department: null, employmentType: null, location: null,
+  publishedAt: null, deadline: null, summary: null, description: null, detailUrl: null, applyUrl: null, isGeneral: null },
+  descriptionFormat: 'html', statusFilter: { path: null, activeValues: [] }, generalApplication: { path: null }, allowedUrlHosts: [] };
+
 test('Opus Futura: ef jobs verður ekki tómt er óstaðfest vörpun höfnun, aldrei falskur tómlisti', () => {
-  const real = P.loadMapping();
   assert.throws(
-    () => S.buildFromRaw({ workplace: 'Reykjanesbær', jobs: [{ id: '1', title: 'Starf' }] }, real, NOW),
+    () => S.buildFromRaw({ workplace: 'Reykjanesbær', jobs: [{ id: '1', title: 'Starf' }] }, UNMAPPED, NOW),
     (e) => e.code === 'MAPPING_UNCONFIGURED'
   );
+});
+
+/* ---------- staðfest snið Opus Futura (30.10.2026), tests/fixtures/opus-feed.json ---------- */
+const OPUS = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/opus-feed.json'), 'utf8'));
+const OPUS_NOW = Date.parse('2026-10-30T10:00:00Z');
+
+test('Opus Futura: raunverulega starfið úr straumnum er birt með réttum reitum', () => {
+  const real = P.loadMapping();
+  const { doc, stats } = S.buildFromRaw(OPUS, real, OPUS_NOW);
+  assert.deepEqual(stats, { received: 1, inactive: 0, invalid: 0, duplicates: 0, expired: 0, published: 1 });
+  const j = doc.jobs[0];
+  const url = OPUS.jobs[0].url;
+  assert.deepEqual(j, {
+    id: url,                                   /* straumurinn hefur ekkert auðkenni — slóð auglýsingarinnar er það */
+    title: 'Forstöðumaður búsetuþjónustu',
+    department: 'Velferðarsvið',
+    employmentType: null, location: null,      /* ekki í sniðinu: ekki búið til */
+    publishedAt: '2026-10-29',
+    deadline: '2026-11-10',
+    isGeneral: false,
+    summary: OPUS.jobs[0].excerpt,
+    description: null,
+    detailUrl: url,
+    applyUrl: url                              /* eina slóðin sem Opus Futura gefur upp, óbreytt */
+  });
+  assert.equal(N.validateDocument(doc).ok, true);
+});
+
+test('Opus Futura: starfið er enn virkt fram að lokum frestsins og hverfur svo (íslenskur tími)', () => {
+  const real = P.loadMapping();
+  assert.equal(S.buildFromRaw(OPUS, real, Date.parse('2026-11-10T23:59:59Z')).doc.count, 1, 'frestur 10. nóv. gildir allan daginn');
+  assert.equal(S.buildFromRaw(OPUS, real, Date.parse('2026-11-11T00:00:00Z')).doc.count, 0, 'daginn eftir er það farið');
+  const after = S.buildFromRaw(OPUS, real, Date.parse('2026-11-11T00:00:00Z'));
+  assert.equal(after.stats.expired, 1);
+});
+
+test('Opus Futura: starf með slóð á öðru léni en opusfutura.com eða án https er fellt burt, ekki birt með ótraustum tengli', () => {
+  const real = P.loadMapping();
+  const good = OPUS.jobs[0];
+  const feed = { workplace: 'Reykjanesbær', jobs: [
+    good,
+    { title: 'Annað lén', department: 'Menntasvið', url: 'https://evil.example/advert/x' },
+    { title: 'Ekki https', department: 'Menntasvið', url: 'http://workplace.opusfutura.com/advert/y' }
+  ] };
+  /* 2 af 3 ógild = of margar → villa frekar en að birta afganginn hljóðlaust */
+  assert.throws(() => S.buildFromRaw(feed, real, OPUS_NOW), (e) => e.code === 'QUALITY');
+  /* eitt ógilt af tveimur: hið ógilda er fellt burt, hitt birt */
+  const { doc, stats } = S.buildFromRaw({ workplace: 'x', jobs: [good, feed.jobs[1]] }, real, OPUS_NOW);
+  assert.deepEqual(doc.jobs.map((j) => j.title), ['Forstöðumaður búsetuþjónustu']);
+  assert.equal(stats.invalid, 1);
+});
+
+test('Opus Futura: ef lénið breytist og ÖLL störf missa slóð er það villa (ekki „engin störf“)', () => {
+  const real = P.loadMapping();
+  const moved = { workplace: 'x', jobs: [Object.assign({}, OPUS.jobs[0], { url: 'https://nytt-lén.example/advert/1' })] };
+  assert.throws(() => S.buildFromRaw(moved, real, OPUS_NOW), (e) => e.code === 'QUALITY');
+});
+
+test('Opus Futura: fleiri störf, tvítekin slóð og vantandi valfrjálsir reitir', () => {
+  const real = P.loadMapping();
+  const a = OPUS.jobs[0];
+  const feed = { workplace: 'Reykjanesbær', jobs: [
+    a,
+    Object.assign({}, a),                                                    /* sama slóð = sama starf */
+    { title: 'Almenn umsókn', department: 'Almenn umsókn', url: 'https://workplace.opusfutura.com/advert/abc' },  /* án dagsetninga */
+    { title: 'Starf með ógildri dagsetningu', department: 'Menntasvið', postedDate: 'í gær', deadline: '31.02.2026',
+      url: 'https://workplace.opusfutura.com/advert/def' }
+  ] };
+  const { doc, stats } = S.buildFromRaw(feed, real, OPUS_NOW);
+  assert.equal(stats.duplicates, 1);
+  assert.deepEqual(doc.jobs.map((j) => j.title), ['Forstöðumaður búsetuþjónustu', 'Almenn umsókn', 'Starf með ógildri dagsetningu']);
+  assert.equal(doc.jobs[1].isGeneral, true, 'sviðsheitið „Almenn umsókn“');
+  assert.equal(doc.jobs[1].deadline, null);
+  assert.equal(doc.jobs[2].deadline, null, 'ógild dagsetning er hunsuð, ekki túlkuð');
+  assert.equal(doc.jobs[2].publishedAt, null);
+});
+
+test('Opus Futura: ef reitaheiti breytast (title hverfur) er það villa, ekki „engin störf“', () => {
+  const real = P.loadMapping();
+  const drift = { workplace: 'Reykjanesbær', jobs: [{ name: 'X', dept: 'Y', link: 'https://workplace.opusfutura.com/advert/x' }] };
+  assert.throws(() => S.buildFromRaw(drift, real, OPUS_NOW), (e) => e.code === 'QUALITY');
 });
 
 test('Opus Futura: rangt gagnasnið er alltaf villa', () => {
@@ -222,12 +307,14 @@ test('samstilling: MISTÖKST → fyrri skrá er ósnert (aldrei yfirskrifuð me�
   }
 });
 
-test('samstilling: óþekkt starf í raunverulegu sniði skrifar ekkert og gefur sérstakan kóða', async () => {
+test('samstilling: óútfyllt vörpun og starf í straumnum skrifar ekkert og gefur sérstakan kóða', async () => {
   const dir = tmpdir();
   const out = path.join(dir, 'jobs.json');
   const input = path.join(dir, 'in.json');
+  const unmapped = path.join(dir, 'unmapped.json');
+  fs.writeFileSync(unmapped, JSON.stringify(UNMAPPED));
   fs.writeFileSync(input, JSON.stringify({ workplace: 'Reykjanesbær', jobs: [{ id: '1', title: 'Starf' }] }));
-  await assert.rejects(S.main(['--input', input, '--out', out]), (e) => e.code === 'MAPPING_UNCONFIGURED');
+  await assert.rejects(S.main(['--input', input, '--mapping', unmapped, '--out', out]), (e) => e.code === 'MAPPING_UNCONFIGURED');
   assert.equal(fs.existsSync(out), false);
 });
 
@@ -241,4 +328,18 @@ test('samstilling: skoðunarhamur þarf enga vörpun', async () => {
   try { assert.equal(await S.main(['--input', input, '--inspect', '--no-samples']), 0); }
   finally { console.log = orig; }
   assert.ok(lines.some((l) => l.startsWith('payload.items : listi (8)')));
+});
+
+test('samstilling: raunverulegt snið Opus Futura yfir http → data/jobs.json með starfinu', async () => {
+  const dir = tmpdir();
+  const out = path.join(dir, 'jobs.json');
+  const { srv, url } = await server((req, res) => res.end(JSON.stringify(OPUS)));
+  try {
+    const code = await S.main(['--url', url, '--out', out]);      /* sjálfgefin vörpun = sú raunverulega */
+    assert.equal(code, 0);
+    const doc = JSON.parse(fs.readFileSync(out, 'utf8'));
+    const v = N.validateDocument(doc);
+    assert.equal(v.ok, true);
+    assert.equal(doc.jobs.length === 1 || doc.jobs.length === 0, true);   /* 0 ef frestur 10. nóv. er liðinn þegar prófið er keyrt */
+  } finally { await close(srv); }
 });

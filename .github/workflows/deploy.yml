@@ -1,7 +1,7 @@
 # Birtir vefinn á GitHub Pages — ásamt nýjustu störfum úr Opus Futura.
 #
 # EIN keyrsla gerir allt: próf → vefur settur saman → störf sótt og staðfest →
-# birting. Þetta er viljandi ekki tvö vinnuflæði sem kveikja hvort á öðru, því
+# (aðeins ef eitthvað er nýtt) birting. Þetta er viljandi ekki tvö vinnuflæði sem kveikja hvort á öðru, því
 # commit frá GITHUB_TOKEN kveikir ekki á öðrum vinnuflæðum. Gögnin eru ekki
 # vistuð í repóinu; þau fara beint í birtingarmöppuna (_site/data/jobs.json).
 #
@@ -19,8 +19,12 @@ on:
   push:
     branches: [main]
   schedule:
-    # Á 30 mín fresti. Mínútur 7 og 37 til að forðast álagstoppa á heilu tímunum.
-    - cron: '7,37 * * * *'
+    # Á 15 mínútna fresti (mínútur 4, 19, 34, 49 — forðast álagstoppa á heilu tímunum).
+    # GitHub keyrir tímasett vinnuflæði „eftir bestu getu“ og sleppir eða seinkar keyrslum
+    # þegar álag er mikið (sést á keyrslusögunni: stundum 4–7 klst. milli keyrslna þótt
+    # skráð sé á 30 mín fresti). Því er tíðnin höfð há: svo lengi sem ein keyrsla af hverjum
+    # átta berst á hverjum 2 klst. er markmiðinu náð. Keyrslur sem finna ekkert nýtt birta ekki.
+    - cron: '4,19,34,49 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -106,11 +110,35 @@ jobs:
             echo "::warning::Samstilling við Opus Futura mistókst (sjá skrefið „Sækja og staðfesta störf“)."
           fi
 
+      # Tímasett keyrsla á 15 mín fresti birtir aðeins ef störfin hafa breyst eða birt gögn
+      # eru orðin ≥ 60 mín. gömul (svo „uppfært“-tíminn haldist ferskur). Allar aðrar
+      # keyrslur (breyting á main, handvirk) og öll fráviksleið birta alltaf.
+      - name: Er eitthvað nýtt til að birta?
+        id: decide
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ steps.sync.outcome }}" = "success" ]; then
+            node scripts/should-deploy.js --new _site/data/jobs.json --live-url "${LIVE_BASE}data/jobs.json" --max-age-minutes 60
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Birta: ekki tímasett keyrsla með nýjum gögnum."
+          fi
+
+      - name: Yfirlit um ákvörðun
+        run: |
+          if [ "${{ steps.decide.outputs.deploy }}" = "true" ]; then
+            echo "- 🚀 Birt. ${{ steps.decide.outputs.reason }}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- ⏭️ Birtingu sleppt: ${{ steps.decide.outputs.reason }}." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - uses: actions/configure-pages@v5
+        if: steps.decide.outputs.deploy == 'true'
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.decide.outputs.deploy == 'true'
         with:
           path: _site
 
       - id: deployment
+        if: steps.decide.outputs.deploy == 'true'
         uses: actions/deploy-pages@v4
