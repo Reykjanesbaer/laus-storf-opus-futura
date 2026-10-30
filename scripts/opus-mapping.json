@@ -1,18 +1,18 @@
 {
-  "$comment": "Raunverulega staðfest rót gagnasniðs Opus Futura (27.10.2026): { workplace: \"Reykjanesbær\", jobs: [] }. Þegar jobs er tómt má birta staðfestan tóman lista. Þegar auglýsing birtist þarf að staðfesta og útfylla fields áður en nokkur störf birtast; keyrðu npm run inspect þegar jobs hefur stök. Ekki giska á reiti eða umsóknarslóðir.",
+  "$comment": "Staðfest gagnasnið Opus Futura (30.10.2026): { workplace, jobs: [ { title, excerpt, department, postedDate, deadline, url } ] }. Engin auðkenni og engin sérstök umsóknarslóð fylgja: `url` er auglýsingin sjálf á vef Opus Futura og er eina slóðin sem þjónustuaðilinn gefur upp, því hún er notuð bæði fyrir „Nánar um starf“ og „Sækja um“. Auðkenni starfs er þá slóðin (sjá normalize.js). Reitir sem eru ekki í sniðinu (employmentType, location, description, isGeneral) eru null — ekki giskað. Almenn umsókn þekkist af sviðsheitinu „Almenn umsókn“. Sjá tests/fixtures/opus-feed.json.",
   "jobsPath": "jobs",
   "fields": {
     "id": null,
-    "title": null,
-    "department": null,
+    "title": "title",
+    "department": "department",
     "employmentType": null,
     "location": null,
-    "publishedAt": null,
-    "deadline": null,
-    "summary": null,
+    "publishedAt": "postedDate",
+    "deadline": "deadline",
+    "summary": "excerpt",
     "description": null,
-    "detailUrl": null,
-    "applyUrl": null,
+    "detailUrl": "url",
+    "applyUrl": "url",
     "isGeneral": null
   },
   "descriptionFormat": "html",
@@ -23,5 +23,5 @@
   "generalApplication": {
     "path": null
   },
-  "allowedUrlHosts": []
+  "allowedUrlHosts": ["opusfutura.com"]
 }

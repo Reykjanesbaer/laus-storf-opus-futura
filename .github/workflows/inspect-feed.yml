@@ -33,10 +33,14 @@ jobs:
         run: |
           flags=""
           if [ "${{ inputs.samples }}" != "true" ]; then flags="--no-samples"; fi
+          node scripts/sync-jobs.js --inspect $flags > inspect.txt 2>&1 || echo "(mistókst — sjá kóða hér að ofan)" >> inspect.txt
+          # Bæði í keyrsluskrána (lesanlegt með API) og í yfirlit keyrslunnar
+          echo "=== Bygging JSON frá Opus Futura ==="
+          cat inspect.txt
           {
             echo "## Bygging JSON frá Opus Futura"
             echo
             echo '```'
-            node scripts/sync-jobs.js --inspect $flags 2>&1 || echo "(mistókst — sjá kóða hér að ofan)"
+            cat inspect.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
